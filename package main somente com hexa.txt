@@ -1,0 +1,67 @@
+package main
+
+import (
+    "fmt"
+    "net"
+)
+
+func main() {
+    ln, err := net.Listen("tcp", ":8899")
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Println("Escutando na porta 8899")
+
+    for {
+        conn, err := ln.Accept()
+        if err != nil {
+            fmt.Println("Erro ao aceitar conexão:", err)
+            continue
+        }
+
+        fmt.Println("Conectado:", conn.RemoteAddr())
+
+        go handleConnection(conn)
+    }
+}
+
+func handleConnection(c net.Conn) {
+    defer c.Close()
+
+    buf := make([]byte, 4096)
+
+    for {
+        n, err := c.Read(buf)
+        if err != nil {
+            fmt.Println("Desconectado")
+            return
+        }
+
+        data := buf[:n]
+
+        fmt.Println()
+        fmt.Println("========================================")
+        fmt.Printf("Recebido %d bytes\n", n)
+
+        fmt.Println("\nHEX:")
+        fmt.Printf("% X\n", data)
+
+        fmt.Println("\nASCII:")
+        fmt.Printf("%q\n", string(data))
+
+        fmt.Println("\nSLICE (DECIMAL):")
+        fmt.Printf("%v\n", data)
+
+        fmt.Println("\nBYTE A BYTE:")
+        for i, b := range data {
+            fmt.Printf("[%02d] HEX=%02X DEC=%3d\n",
+                i,
+                b,
+                b,
+            )
+        }
+
+        fmt.Println("========================================")
+    }
+}
